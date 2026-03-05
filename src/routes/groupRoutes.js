@@ -392,4 +392,4 @@ router.get('/:clanTag/available-players', async (req, res) => {
   }
 });
 
-module.exports = router; // 👈 DON'T FORGET THIS!
+module.exports = router; 
