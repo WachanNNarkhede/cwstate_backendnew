@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const { connectToDatabase } = require('../src/utils/dbConnect'); // Import the connection
+const { connectToDatabase } = require('../src/utils/dbConnect');
 
-// Import your routes (paths are now ../src/routes/)
+// Import routes with correct paths
 const clanRoutes = require('../src/routes/clanRoutes');
 const groupRoutes = require('../src/routes/groupRoutes');
 
@@ -11,6 +11,7 @@ const app = express();
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:3000',
   process.env.CLIENT_URL || 'https://cwstate-frontendnew.vercel.app'
 ].filter(Boolean);
 
@@ -27,20 +28,19 @@ app.use(cors({
 
 app.use(express.json());
 
-// Health check endpoint
+// Health check endpoint (THIS MUST WORK FIRST)
 app.get('/api/health', async (req, res) => {
   try {
     await connectToDatabase();
     res.json({ 
       status: 'ok', 
       timestamp: new Date().toISOString(),
-      db: 'connected'
+      message: 'Backend is running!'
     });
   } catch (error) {
     res.status(500).json({ 
       status: 'error', 
-      message: 'Database connection failed',
-      error: error.message 
+      message: error.message 
     });
   }
 });
@@ -58,13 +58,17 @@ app.use('/api', async (req, res, next) => {
   }
 });
 
-// Your routes
+// Mount your routes
 app.use('/api/clan', clanRoutes);
 app.use('/api/groups', groupRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ 
+    error: 'Route not found',
+    path: req.path,
+    method: req.method
+  });
 });
 
 // Error handler
